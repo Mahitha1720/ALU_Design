@@ -31,7 +31,7 @@ parameter RES_WIDTH=8;
   parameter MUL2 = 2'd2;
   parameter MUL3 = 2'd3;
 
-    always@(posedge CLK)
+    always@(posedge CLK or posedge RST)
       begin
        if(CE)
         begin
