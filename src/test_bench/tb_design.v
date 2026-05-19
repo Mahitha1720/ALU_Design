@@ -1,45 +1,44 @@
 `timescale 1ns/1ps
 
-module tb_design;
+module tb_alu_design;
 
-    parameter WIDTH=4;
-    parameter RES_WIDTH=8;
+    parameter N=4;
 
-    reg [WIDTH-1:0] OPA, OPB;
+    reg [N-1:0] OPA, OPB;
     reg CLK, RST, CE, MODE, CIN;
     reg [1:0] INP_VALID;
     reg [3:0] CMD;
 
-    wire [RES_WIDTH-1:0] RES_dut;
+    wire [2*N-1:0] RES_dut;
     wire COUT_dut, OFLOW_dut, G_dut, E_dut, L_dut, ERR_dut;
 
-    wire [RES_WIDTH-1:0] RES_ref;
+    wire [2*N-1:0] RES_ref;
     wire COUT_ref, OFLOW_ref, G_ref, E_ref, L_ref, ERR_ref;
 
     integer pass_count = 0;
     integer fail_count = 0;
     integer test_count = 0;
 
-    alu #(.W(WIDTH), .W_cmd(4)) dut (
+    alu #(.N(N)) dut (
         .OPA(OPA),
         .OPB(OPB),
-        .cin(CIN),
-        .clk(CLK),
-        .rst(RST),
-        .cmd(CMD),
-        .ce(CE),
-        .mode(MODE),
-        .inp_valid(INP_VALID),
-        .cout(COUT_dut),
-        .oflow(OFLOW_dut),
-        .res(RES_dut),
+        .CIN(CIN),
+        .CLK(CLK),
+        .RST(RST),
+        .CMD(CMD),
+        .CE(CE),
+        .MODE(MODE),
+        .INP_VALID(INP_VALID),
+        .COUT(COUT_dut),
+        .OFLOW(OFLOW_dut),
+        .RES(RES_dut),
         .G(G_dut),
         .E(E_dut),
         .L(L_dut),
-        .err(ERR_dut)
+        .ERR(ERR_dut)
     );
 
-    alu_ref_model #(.WIDTH(WIDTH)) ref (
+    alu_ref_model #(.N(N)) ref (
         .OPA(OPA),
         .OPB(OPB),
         .CIN(CIN),
@@ -143,13 +142,13 @@ module tb_design;
             apply_test(4'd13, 4'd0,  4'b0100, 2'b01, "INC_A_Normal_case",    2);
             apply_test(4'd15, 4'd0,  4'b0100, 2'b11, "INC_A_both_valid",     2);
             apply_test(4'd0,  4'd0,  4'b0100, 2'b01, "INC_A_min",            2);
-            apply_test(4'd15, 4'd0,  4'b0100, 2'b01, "INC_A_max_overflow",   2);
+            apply_test(4'd15, 4'd0,  4'b0100, 2'b01, "INC_A_max_cout",   2);
             apply_test(4'd10, 4'd0,  4'b0100, 2'b00, "INC_A_invalid_input",  2);
             apply_test(4'd10, 4'd0,  4'b1111, 2'b01, "INC_A_invalid_command",2);
 
             apply_test(4'd9,  4'd0,  4'b0101, 2'b01, "DEC_A_Normal_case",    2);
             apply_test(4'd15, 4'd0,  4'b0101, 2'b11, "DEC_A_both_valid",     2);
-            apply_test(4'd0,  4'd0,  4'b0101, 2'b01, "DEC_A_zero_wrap",      2);
+            apply_test(4'd0,  4'd0,  4'b0101, 2'b01, "DEC_A_zero",      2);
             apply_test(4'd10, 4'd0,  4'b0101, 2'b00, "DEC_A_invalid_input",  2);
             apply_test(4'd10, 4'd0,  4'b1111, 2'b01, "DEC_A_invalid_command",2);
 
@@ -202,7 +201,7 @@ module tb_design;
             apply_test(4'd7,  4'd1,  4'b1011, 2'b11, "CMD11_pos_overflow",   2);
             apply_test(4'd8,  4'd15, 4'b1011, 2'b11, "CMD11_neg_overflow",   2);
             apply_test(4'd8,  4'd8,  4'b1011, 2'b11, "CMD11_neg_neg_equal",  2);
-            apply_test(4'd8,  4'd7,  4'b1011, 2'b11, "CMD11_neg_gt_pos",     2);
+            apply_test(4'd8,  4'd7,  4'b1011, 2'b11, "CMD11_neg_pos",     2);
             apply_test(4'd7,  4'd8,  4'b1011, 2'b11, "CMD11_pos_vs_neg",     2);
             apply_test(4'd0,  4'd1,  4'b1011, 2'b11, "CMD11_zero_vs_one",    2);
             apply_test(4'd10, 4'd5,  4'b1011, 2'b00, "CMD11_invalid_input",  2);
@@ -366,8 +365,8 @@ module tb_design;
     endtask
 
     task apply_test(
-        input [WIDTH-1:0] a,
-        input [WIDTH-1:0] b,
+        input [N-1:0] a,
+        input [N-1:0] b,
         input [3:0] cmd,
         input [1:0] inp_valid,
         input [80*8:1] test_name,
@@ -385,7 +384,7 @@ module tb_design;
         CMD = cmd;
         INP_VALID = inp_valid;
 
-        for(i = 0; i <= wait_cycles; i = i + 1)
+        for(i = 0; i < wait_cycles; i = i + 1)
             @(posedge CLK);
 
         test_count = test_count + 1;
@@ -429,7 +428,7 @@ module tb_design;
 
     initial begin
         $dumpfile("alu_test.vcd");
-        $dumpvars(0, tb_design);
+        $dumpvars(0, tb_alu_design);
     end
 
 endmodule
